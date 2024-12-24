@@ -250,7 +250,8 @@ namespace osu.Server.Spectator.Hubs.Multiplayer
             BeatmapChecksum = CurrentItem.BeatmapChecksum,
             RulesetID = CurrentItem.RulesetID,
             AllowedMods = CurrentItem.AllowedMods,
-            RequiredMods = CurrentItem.RequiredMods
+            RequiredMods = CurrentItem.RequiredMods,
+            BeatmapSetID = CurrentItem.BeatmapSetID
         });
 
         private async Task addItem(IDatabaseAccess db, MultiplayerPlaylistItem item)

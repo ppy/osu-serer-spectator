@@ -224,6 +224,7 @@ namespace osu.Server.Spectator.Database
             await connection.ExecuteAsync(
                 "UPDATE multiplayer_playlist_items SET"
                 + " beatmap_id = @beatmap_id,"
+                + " beatmapset_id = @beatmapset_id,"
                 + " ruleset_id = @ruleset_id,"
                 + " required_mods = @required_mods,"
                 + " allowed_mods = @allowed_mods,"

@@ -18,6 +18,7 @@ namespace osu.Server.Spectator.Database.Models
         public int owner_id { get; set; }
         public long room_id { get; set; }
         public int beatmap_id { get; set; }
+        public int? beatmapset_id { get; set; }
         public short ruleset_id { get; set; }
         public ushort? playlist_order { get; set; }
         public string? allowed_mods { get; set; }
@@ -56,6 +57,7 @@ namespace osu.Server.Spectator.Database.Models
             owner_id = item.OwnerID;
             room_id = roomId;
             beatmap_id = item.BeatmapID;
+            beatmapset_id = item.BeatmapSetID;
             ruleset_id = (short)item.RulesetID;
             required_mods = JsonConvert.SerializeObject(item.RequiredMods);
             allowed_mods = JsonConvert.SerializeObject(item.AllowedMods);
@@ -73,6 +75,7 @@ namespace osu.Server.Spectator.Database.Models
                 ID = id,
                 OwnerID = owner_id,
                 BeatmapID = beatmap_id,
+                BeatmapSetID = beatmapset_id,
                 BeatmapChecksum = beatmap?.checksum ?? string.Empty,
                 RulesetID = ruleset_id,
                 RequiredMods = JsonConvert.DeserializeObject<APIMod[]>(required_mods ?? string.Empty) ?? Array.Empty<APIMod>(),
