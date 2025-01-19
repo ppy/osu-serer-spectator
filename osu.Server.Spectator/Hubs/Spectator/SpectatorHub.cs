@@ -203,11 +203,31 @@ namespace osu.Server.Spectator.Hubs.Spectator
             }
 
             await Groups.AddToGroupAsync(Context.ConnectionId, GetGroupId(userId));
+
+            int watcherId = Context.GetUserId();
+            string? watcherUsername;
+            using (var db = databaseFactory.GetInstance())
+                watcherUsername = await db.GetUsernameAsync(watcherId);
+
+            if (watcherUsername == null)
+                return;
+
+            var watcher = new SpectatorUser
+            {
+                OnlineID = watcherId,
+                Username = watcherUsername,
+            };
+
+            await Clients.User(userId.ToString()).UserStartedWatching([watcher]);
         }
 
         public async Task EndWatchingUser(int userId)
         {
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, GetGroupId(userId));
+
+            int watcherId = Context.GetUserId();
+
+            await Clients.User(userId.ToString()).UserEndedWatching(watcherId);
         }
 
         public override async Task OnConnectedAsync()

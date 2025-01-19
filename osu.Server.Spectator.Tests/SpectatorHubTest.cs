@@ -10,7 +10,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using osu.Game.Beatmaps;
 using osu.Game.Online.API;
-using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Spectator;
 using osu.Game.Replays.Legacy;
 using osu.Game.Rulesets.Osu.Mods;
@@ -42,6 +41,7 @@ namespace osu.Server.Spectator.Tests
         public SpectatorHubTest()
         {
             var clientStates = new EntityStore<SpectatorClientState>();
+            var spectatorLists = new EntityStore<SpectatorList>();
 
             mockDatabase = new Mock<IDatabaseAccess>();
             mockDatabase.Setup(db => db.GetUsernameAsync(streamer_id)).ReturnsAsync(() => streamer_username);
@@ -65,7 +65,7 @@ namespace osu.Server.Spectator.Tests
 
             var mockScoreProcessedSubscriber = new Mock<IScoreProcessedSubscriber>();
 
-            hub = new SpectatorHub(loggerFactory.Object, clientStates, databaseFactory.Object, scoreUploader, mockScoreProcessedSubscriber.Object);
+            hub = new SpectatorHub(loggerFactory.Object, clientStates, spectatorLists, databaseFactory.Object, scoreUploader, mockScoreProcessedSubscriber.Object);
         }
 
         [Fact]
@@ -325,9 +325,12 @@ namespace osu.Server.Spectator.Tests
 
             Mock<IHubCallerClients<ISpectatorClient>> mockClients = new Mock<IHubCallerClients<ISpectatorClient>>();
             Mock<ISpectatorClient> mockCaller = new Mock<ISpectatorClient>();
+            Mock<ISpectatorClient> mockStreamer = new Mock<ISpectatorClient>();
 
             mockClients.Setup(clients => clients.Caller).Returns(mockCaller.Object);
             mockClients.Setup(clients => clients.All).Returns(mockCaller.Object);
+            mockClients.Setup(clients => clients.User(streamer_id.ToString())).Returns(mockStreamer.Object);
+            mockDatabase.Setup(db => db.GetUsernameAsync(watcher_id)).ReturnsAsync("watcher");
 
             Mock<IGroupManager> mockGroups = new Mock<IGroupManager>();
 
@@ -362,6 +365,12 @@ namespace osu.Server.Spectator.Tests
             mockGroups.Verify(groups => groups.AddToGroupAsync(connectionId, SpectatorHub.GetGroupId(streamer_id), default));
 
             mockCaller.Verify(clients => clients.UserBeganPlaying(streamer_id, It.Is<SpectatorState>(m => m.Equals(state))), Times.Exactly(ongoing ? 2 : 0));
+            mockStreamer.Verify(client => client.UserStartedWatching(It.Is<SpectatorUser[]>(users => users.Single().OnlineID == watcher_id)), Times.Once);
+
+            await hub.EndWatchingUser(streamer_id);
+
+            mockGroups.Verify(groups => groups.RemoveFromGroupAsync(connectionId, SpectatorHub.GetGroupId(streamer_id), default));
+            mockStreamer.Verify(client => client.UserEndedWatching(watcher_id), Times.Once);
         }
 
         [Fact]

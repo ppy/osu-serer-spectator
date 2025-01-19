@@ -64,6 +64,19 @@ namespace SampleSpectatorClient
             return Task.CompletedTask;
         }
 
+        Task ISpectatorClient.UserStartedWatching(SpectatorUser[] users)
+        {
+            foreach (var user in users)
+                Console.WriteLine($"{connection.ConnectionId} User {user.OnlineID} started watching you");
+            return Task.CompletedTask;
+        }
+
+        Task ISpectatorClient.UserEndedWatching(int userId)
+        {
+            Console.WriteLine($"{connection.ConnectionId} User {userId} ended watching you");
+            return Task.CompletedTask;
+        }
+
         public Task BeginPlaying(long? scoreToken, SpectatorState state) => connection.SendAsync(nameof(ISpectatorServer.BeginPlaySession), scoreToken, state);
 
         public Task SendFrames(FrameDataBundle data) => connection.SendAsync(nameof(ISpectatorServer.SendFrameData), data);
